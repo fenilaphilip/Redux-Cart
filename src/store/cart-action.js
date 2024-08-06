@@ -1,5 +1,38 @@
 import { uiActions } from './ui-slice';
+import { cartActions } from './cart-slice';
 
+const url = 'https://cart-16835-default-rtdb.europe-west1.firebasedatabase.app/cart.json';
+
+export const fetchCartData = () => {
+    return async (dispatch) => {
+        const fetchData = async () => {
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                console.log("Did not get cart" + response.status)
+                throw new Error('Could not fetch cart data!');
+            } else {
+                console.log("Got cart");
+            }
+
+            const data = await response.json();
+
+            return data;
+        };
+
+        try {
+            const cartData = await fetchData();
+            dispatch(cartActions.replaceCart(cartData));
+
+        } catch (err) {
+            dispatch(uiActions.showNotification({
+                status: "error",
+                title: "Error!",
+                message: "Fetching cart data failed!",
+            }));
+        };
+    };
+};
 
 export const sendCartData = (cart) => {
     return async (dispatch) => {
@@ -12,7 +45,7 @@ export const sendCartData = (cart) => {
         );
 
         const sendRequest = async () => {
-            const response = await fetch('https://cart-16835-default-rtdb.europe-west1.firebasedatabase.app/cart.json', {
+            const response = await fetch(url, {
                 method: 'PUT',
                 body: JSON.stringify(cart),
             });
